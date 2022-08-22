@@ -1,0 +1,15 @@
+## ----Out Put Format1, echo=FALSE, fig.align='center', fig.cap="Cartoon representation of hapResult and hapSummary contents", fig.height=4, fig.width=6----
+plot(c(0,5),c(0,5), axes = FALSE, type = "n", xlab="", ylab ="", frame.plot = F)
+rect(xleft=0, ybottom=0, xright=0.5, ytop=4.5)
+rect(xleft=0.5, ybottom=3.5, xright=4, ytop=4.5)
+rect(xleft=0.5, ybottom=0, xright=4, ytop=3.5)
+rect(xleft=4, ybottom=0, xright=5, ytop=3.5)
+text(0.25, 4.75, "Part I", cex=1)
+text(2.25, 4.75, "Part II", cex=1)
+text(4.5, 4.75, "Part III", cex=1)
+text(0.25, 3, "Lead column", cex=1, srt = 270)
+text(2.25, 4.15, "Sites information", cex=1)
+text(2.25, 3.85, "(CHROM, POS, INFO, ALLELE)", cex=0.8)
+text(2.25, 2, "Genotypes", cex=1)
+text(4.5, 2, "Accessions (freq)", cex=1, srt= 270)
+
