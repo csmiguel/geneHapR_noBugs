@@ -18,9 +18,18 @@ data("geneHapR_test")
 #  # import gziped vcf file
 #  vcf <- import_vcf("your_vcf_file_path.vcf.gz")
 
+## ----import p.link, eval=FALSE, include=TRUE----------------------------------
+#  plink <- import_plink.pedmap(mapfile = "p_link.map", pedfile = "p_link.ped",
+#                               sep_ped = "\t", sep_map = "\t")
+#  plink <- import_plink.pedmap(root = "p_link", sep_ped = "\t", sep_map = "\t")
+
 ## ----import gff, eval=FALSE, include=TRUE-------------------------------------
 #  # import GFFs
 #  gff <- import_gff("your_gff_file_path.gff", format = "GFF")
+
+## ----import bed, eval=FALSE, include=TRUE-------------------------------------
+#  # import GFFs
+#  bed <- import_bed("your_gff_file_path.bed")
 
 ## ----import DNA seqs, eval=FALSE, include=TRUE--------------------------------
 #  # import DNA sequences in fasta format
@@ -35,7 +44,6 @@ data("geneHapR_test")
 head(pheno)
 
 ## ----import pheno, eval=FALSE-------------------------------------------------
-#  
 #  # import accession group/location information
 #  AccINFO <- import_AccINFO("accession_group_file_path.txt")
 
@@ -90,6 +98,10 @@ head(AccINFO)
 #                            c(38469,40344)),
 #                 override = TRUE)               # if TRUE, existed file will be override without warning
 
+## ----p.link filtration, eval=FALSE, message=FALSE, warning=FALSE, include=TRUE----
+#  p.link <- filter_plink.pedmap(p.link, mode = "POS",
+#                                Chr = "Chr08", start = 25947258, end = 25948258)
+
 ## ----DNA alignment and trim, eval=FALSE, message=FALSE, warning=FALSE, include=TRUE----
 #  # sequences alignment
 #  seqs <- allignSeqs(seqs, quiet = TRUE)
@@ -97,6 +109,14 @@ head(AccINFO)
 #  # sequences trim
 #  seqs <- trimSeqs(seqs, minFlankFraction = 0.1)
 #  seqs
+
+## ----hap filtration, eval=FALSE, message=FALSE, warning=FALSE, include=TRUE----
+#  hap <- filter_hap(hapSummary,
+#                    rm.mode = c("position", "accession", "haplotype", "freq"),
+#                    position.rm = c(4879, 4950),
+#                    accession.rm = c("C1", "C9"),
+#                    haplotype.rm = c("H009", "H008"),
+#                    freq.min = 5)
 
 ## ----haplotype calculation from vcf, eval=NOT_CRAN, include=TRUE, message=FALSE, warning=FALSE----
 hapResult <- vcf2hap(vcf,
@@ -196,8 +216,9 @@ hapNet <- get_hapNet(hapSummary,
                      AccINFO = AccINFO,
                      groupName = "Type")
 
-## ---- eval=NOT_CRAN, fig.height=4, fig.width=6, message=FALSE, warning=FALSE, paged.print=FALSE----
+## ---- eval=NOT_CRAN, fig.height=6, fig.width=7, message=FALSE, warning=FALSE, paged.print=FALSE----
 # plot haploNet
+
 plotHapNet(hapNet,
            size = "freq",                   # circle size
            scale = "log2",                 # scale circle with 'log10(size + 1)'
@@ -205,7 +226,17 @@ plotHapNet(hapNet,
            col.link = 2,                    # link colors
            link.width = 2,                  # link widths
            show.mutation = 2,               # mutation types one of c(0,1,2,3)
-           legend = c(-13,-2))        # legend position
+           legend = c(-12.5, 7))        # legend position
+
+## ----geo distribution, eval=NOT_CRAN, fig.height=4, fig.width=6, message=FALSE, warning=FALSE, paged.print=FALSE----
+# library(mapdata)
+# library(maptools)
+hapDistribution(hapResult,
+                AccINFO = AccINFO,
+                LON.col = "longitude",
+                LAT.col = "latitude", 
+                hapNames = c("H001", "H002", "H003"), 
+                legend = TRUE)
 
 ## ----hapVsPheno merged, eval=NOT_CRAN, fig.height=4, fig.width=10, message=FALSE, warning=FALSE, paged.print=FALSE----
 results <-hapVsPheno(hapResult,
@@ -239,13 +270,8 @@ plot(results$fig_Violin)
 #              height = 8,
 #              res = 300)
 
-## ----geo distribution, eval=NOT_CRAN, fig.height=4, fig.width=6, message=FALSE, warning=FALSE, paged.print=FALSE----
-# library(mapdata)
-# library(maptools)
-hapDistribution(hapResult,
-                AccINFO = AccINFO,
-                LON.col = "longitude",
-                LAT.col = "latitude", 
-                hapNames = c("H001", "H002", "H003"), 
-                legend = TRUE)
+## ----site effect evaluation, eval=NOT_CRAN, fig.height=4, fig.width=6, message=FALSE, warning=FALSE, paged.print=FALSE----
+EFF <- siteEFF(hap = hapResult, pheno = pheno, quality = FALSE, p.adj = "BH")
+plotEFF(siteEFF = EFF, y = "effect", pch = c(20, 22))
+plotEFF(siteEFF = EFF, y = "pvalue", pch = c(20, 22))
 

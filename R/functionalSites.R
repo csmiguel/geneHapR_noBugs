@@ -131,7 +131,7 @@ siteEFF <- function(hap, pheno, phenoNames, quality = FALSE, method = "auto",
                                         if(length(x) > 5000) x <- sample(x, 5000)
                                         shapiro.test(x)$p.value
                                     }
-                                    )
+                    )
                     if(min(sha.p, na.rm = TRUE) >= 0.05){
                         # all sub data set fit normal distribution
                         res.ps <- t.test.ps(phenos)
@@ -141,17 +141,19 @@ siteEFF <- function(hap, pheno, phenoNames, quality = FALSE, method = "auto",
                     }
                 }
             } else {
-                switch (method,
-                    "chisq.test" = chisq.test.ps(phenos),
-                    "t.test" = t.test.ps(phenos),
-                    "wilcox.test" = wilcox.test.ps(phenos)
+                res.ps <- switch (method,
+                                  "chisq.test" = chisq.test.ps(phenos),
+                                  "t.test" = t.test.ps(phenos),
+                                  "wilcox.test" = wilcox.test.ps(phenos)
                 )
             }
 
 
             # test end
-            p <- min(res.ps$p)
-            d <- max(res.ps$d)
+            p <- if(na.omit(res.ps$p) %>% length() > 0)
+                min(res.ps$p, na.rm = TRUE) else NA
+            d <- if(na.omit(res.ps$d) %>% length() > 0)
+                max(res.ps$d, na.rm = TRUE) else NA
             res.p <- c(res.p, p)
             res.d <- c(res.d, d)
 
@@ -165,11 +167,8 @@ siteEFF <- function(hap, pheno, phenoNames, quality = FALSE, method = "auto",
         results.p <- matrix(p.adjust(as.matrix(results.p), method = p.adj),
                             nrow = nrow(results.p))
     }
-    names(results.p) <- POS
-    row.names(results.p) <- phenoNames
-    names(results.d) <- POS
-    results.d <- (results.d)
-    row.names(results.d) <- phenoNames
+    colnames(results.d) <- colnames(results.p) <- POS
+    rownames(results.d) <- rownames(results.p) <- phenoNames
     # results <- cbind(pheno = phenoNames, results)
     return(list(p = t(results.p), EFF = t(results.d)))
 }
@@ -187,8 +186,8 @@ t.test.ps <- function(phenos){
 
             # t.test or chisqure test or anova analysis
             pij.res <- try(t.test(phenoi, phenoj,
-                              alternative = "two.sided"),
-                       silent = TRUE)
+                                  alternative = "two.sided"),
+                           silent = TRUE)
             if(inherits(pij.res, "htest")){
                 pij <- pij.res$p.value
                 dij <- abs(diff(pij.res$estimate))
@@ -229,7 +228,7 @@ chisq.test.ps <- function(phenos){
         ptable.f[i,] <- ptable[i,]/sum(ptable[i,])
     d <- 0
     for(i in seq_len(ncol(ptable)))
-        d <- (max(ptable.f[,i]) - min(ptable.f[,i])) / 2
+        d <- (max(ptable.f[,i], na.rm = TRUE) - min(ptable.f[,i], na.rm = TRUE)) / 2
 
     list(p = p, d = d)
 }
@@ -256,7 +255,9 @@ wilcox.test.ps <- function(phenos){
                 pij <- NA
             }
             p <- c(p, pij)
-            dij <- abs(diff(mean(phenoi), mean(phenoj)))
+            dij <- c(mean(phenoi, na.rm = TRUE),
+                     mean(phenoj, na.rm = TRUE)) %>%
+                diff() %>% abs()
             d <- c(d, dij)
         }
     }
@@ -274,10 +275,12 @@ wilcox.test.ps <- function(phenos){
 #' plotEFF(siteEFF, gff = gff,
 #'         Chr = Chr, start = start, end = end,
 #'         showType = c("five_prime_UTR", "CDS", "three_prime_UTR"),
-#'         CDS.height = 1, cex = 0.1, col = col, pch = 20,
-#'         main = main, legend.cex = 0.8, legend.ncol = legend.ncol,
+#'         CDS.height = CDS.height, cex = 0.1, col = col, pch = 20,
+#'         main = main, legend.cex = 0.8, gene.legend = TRUE,
 #'         markMutants = TRUE, mutants.col = 1, mutants.type = 1,
-#'         ylab = "effect")
+#'         y = c("pvalue","effect"), ylab = ylab,
+#'         legendtitle = legendtitle,
+#'         par.restore = TRUE)
 #' @inherit siteEFF examples
 #' @param siteEFF matrix, column name are pheno names and row name are site position
 #' @param gff gff
@@ -295,183 +298,367 @@ wilcox.test.ps <- function(phenos){
 #' \code{\link[graphics:par]{par()}}
 #' @param main main title
 #' @param legend.cex a numeric control the legend size
-#' @param legend.ncol the number of columns in which to set the legend items
+#' @param gene.legend whether add legend for gene model
 #' @param markMutants whether mark mutants on gene model, default as `TRUE`
 #' @param mutants.col color of lines which mark mutants
 #' @param mutants.type a vector of line types
-#' @param ylab character, yaxis label
+#' @param y,ylab,legendtitle *y:* indicate either pvalue or effect should be used as y axix,
+#' **ylab,legendtitle:**,character, if missing, the value will be decide by y.
+#' @param par.restore default as `TRUE`, wether restore the origin par after ploted EFF.
 #' @return No return value, called for side effects
 #' @export
 plotEFF <- function(siteEFF, gff = gff,
                     Chr = Chr, start = start, end = end,
                     showType = c("five_prime_UTR", "CDS", "three_prime_UTR"),
-                    CDS.height = 1, cex = 0.1, col = col, pch = 20,
-                    main = main, legend.cex = 0.8, legend.ncol = legend.ncol,
+                    CDS.height = CDS.height, cex = 0.1, col = col, pch = 20,
+                    main = main, legend.cex = 0.8, gene.legend = TRUE,
                     markMutants = TRUE, mutants.col = 1, mutants.type = 1,
-                    ylab = "effect"){
-                    # ylab = expression("-log"[10]~italic(p)~"Value")){
-        EFF <- as.matrix(siteEFF$EFF)
-    p <- siteEFF$p
-    POS <- suppressWarnings(as.numeric(row.names(EFF)))
-
-    if(missing(Chr))
-        stop("Chr is missing")
-    if(missing(start))
-        start <- min(POS) - 0.05 * diff(range(POS))
-    if(missing(end))
-        end <- max(POS) + 0.05 * diff(range(POS))
-
-    # get GFF ranges for display
-    gr <- GenomicRanges::GRanges(seqnames = Chr,
-                                 ranges = IRanges::IRanges(start = start,
-                                                           end = end))
-    gff <- gff[IRanges::`%over%`(gff, gr)]
-    gff <- gff[gff$type %in% showType]
-
+                    y = c("pvalue","effect"), ylab = ylab,
+                    legendtitle = legendtitle,
+                    par.restore = TRUE){
     # reset of par
     oldPar.fig <- par("fig")
     oldPar.mar.m <- oldPar.mar <- par("mar")
-    on.exit(par(fig = oldPar.fig, mar = oldPar.mar))
+    oldPar.mar.m[4] <- 0
+    oldPar.mar.m[1] <- 3
+
+    if(par.restore)
+        on.exit(par(fig = oldPar.fig, mar = oldPar.mar))
 
 
-    # plot genemodel
-    # set of fig.h
-    Parents <- unique(unlist(gff$Parent))
-    nsplicement <- length(Parents)
-    fig.h <- ifelse(nsplicement >= 5, 0.5, 0.1 * (1.2 + nsplicement))
-    ln <- -0.6
+    y <- y[1]
+    if(y == "pvalue") {
+        value_c <- as.matrix(siteEFF$EFF)
+        value_y <- -log10(siteEFF$p)
+        if(missing(ylab))
+            ylab <- expression("-log"[10]~italic(p)~"Value")
+        if(missing(legendtitle))
+            legendtitle <- "effect"
+    } else if(y == "effect") {
+        value_c <- -log10(siteEFF$p)
+        value_y <- as.matrix(siteEFF$EFF)
+        if(missing(ylab))
+            ylab <- "effect"
+        if(missing(legendtitle))
+            legendtitle <- expression("-log"[10]~italic(p)~"Value")
+    } else {
+        stop("y should be one of 'pvalue' or 'effect'")
+    }
 
+    # legend text and colors
+    heatcols <- rev(heat.colors(1000))
+    value_c.max <- max(value_c, na.rm = TRUE)
+    value_c.min <- min(value_c, na.rm = TRUE)
+    cols <- round((value_c - value_c.min + 1) / (value_c.max - value_c.min + 1) * 1000)
+    cols[,] <- heatcols[cols]
+
+    t1 <- value_c.max - (value_c.max - value_c.min) / 4 * 1
+    t2 <- value_c.max - (value_c.max - value_c.min) / 4 * 2
+    t3 <- value_c.max - (value_c.max - value_c.min) / 4 * 3
+
+
+    POS <- suppressWarnings(as.numeric(row.names(value_y)))
+    if(missing(start))
+        start <- min(POS, na.rm = TRUE) - 0.05 * diff(range(POS))
+    if(missing(end))
+        end <- max(POS, na.rm = TRUE) + 0.05 * diff(range(POS))
 
     # set of par
-    oldPar.mar.m[4] <- 0
     par.mar <- oldPar.mar.m
     par.mar[3] <- 0
-    par(fig = c(0, 0.82, 0, fig.h), mar = par.mar)
+    par(fig = c(0, 0.78, 0, 1), mar = par.mar)
 
 
     # just plot
-    plot(x = c(start, end), y = c(0, nsplicement * 1.1),
+    plot(x = c(start, end), y = c(1, 1),
          yaxt = "n", type = "n", xlab="", ylab ="",
          frame.plot = FALSE)
 
-    # add legend
-    xy <- par("usr")
-    if(missing(legend.ncol))
-        legend.ncol <- ifelse(nsplicement <= 3, nsplicement, 3)
+    if(! missing(gff)){
+        if(missing(Chr))
+            stop("Chr is missing")
 
-    legend(x = 0.5 * (xy[1] + xy[2]), y = xy[3] - 4 * strheight(""), legend = Parents,
-           fill = rainbow(length(Parents)), xjust = 0.5,cex = legend.cex,
-           ncol = legend.ncol, xpd = TRUE)
+        # get GFF ranges for display
+        gr <- GenomicRanges::GRanges(seqnames = Chr,
+                                     ranges = IRanges::IRanges(start = start,
+                                                               end = end))
+        gff <- gff[IRanges::`%over%`(gff, gr)]
+        gff <- gff[gff$type %in% showType]
 
-    # markMutants
-    if(markMutants){
+
+        # plot genemodel
+        # set of fig.h
+        Parents <- unique(unlist(gff$Parent))
+        nsplicement <- length(Parents)
+        if(nsplicement == 0)
+            stop("no sites on features defined by gff, please condsider adjust start and end")
+        fig.h <- ifelse(nsplicement >= 5, 0.5, 0.1 * (1.2 + nsplicement))
+        ln <- -0.6
+
+        # SET OF PAR
         par.mar <- oldPar.mar.m
         par.mar[3] <- 0
-        par(fig = c(0, 0.82, 0.01, fig.h + 0.01), mar = par.mar, new = TRUE)
+        par(fig = c(0, 0.78, 0.01, fig.h + 0.01), mar = par.mar, new = TRUE)
         plot(start, xlim = c(start, end), ylim = c(0, nsplicement * 1.1),
              type = "n", xaxt = "n", yaxt = "n",
              xlab = "", ylab = "", frame.plot = FALSE)
-        for(pos in POS){
-            y.up <- ln + 1.1 * length(Parents) + 2.1
-            lines(c(pos, pos), c(0.4, y.up),
-                  col = mutants.col, lty = mutants.type)
+
+        # markMutants
+        if(markMutants){
+            for(pos in POS){
+                y.up <- ln + 1.1 * length(Parents) + 2.1
+                lines(c(pos, pos), c(0.4, y.up),
+                      col = mutants.col, lty = mutants.type)
+            }
         }
-    }
 
-    n <- 1
-    for(s in Parents){
-        gffs <- gff[unlist(gff$Parent) == s]
-        anno <- ifelse(gffs@strand[1] == "-", "3'<-5'", "5'->3'")
+        n <- 1
+        Parents.txt <- c()
+        Parents.y <- c()
+        for(s in Parents){
+            gffs <- gff[unlist(gff$Parent) == s]
+            anno <- ifelse(gffs@strand[1] == "-", "3'<-5'", "5'->3'")
 
-
-        ln <- ln + 1.1
-        lines(c(start,end),c(ln,ln))
-        text(start - strwidth(anno), ln, anno, xpd = TRUE)
-        s.col <- rainbow(nsplicement)[n]
-        n <- n + 1
-        for(i in seq_len(length(gffs))){
-            gffi <- gffs[i]
-            h <- ifelse(gffi$type == "CDS", CDS.height, CDS.height * 0.5) * 0.5
-            xl <- gffi@ranges@start
-            xr <- xl + gffi@ranges@width - 1
-            rect(xleft = xl, xright = xr, ybottom = ln - h, ytop = ln + h, col = s.col)
+            ln <- ln + 1.1
+            lines(c(start,end),c(ln,ln))
+            text(start - strwidth(anno), ln, anno, xpd = TRUE)
+            s.col <- rainbow(nsplicement)[n]
+            n <- n + 1
+            if(missing(CDS.height))
+                CDS.height <- min(strheight(" ") * 1.5, 1)
+            for(i in seq_len(length(gffs))){
+                gffi <- gffs[i]
+                h <- ifelse(gffi$type == "CDS", CDS.height, CDS.height * 0.5) * 0.5
+                xl <- gffi@ranges@start
+                xr <- xl + gffi@ranges@width - 1
+                rect(xleft = xl, xright = xr, ybottom = ln - h, ytop = ln + h, col = s.col)
+            }
+            Parents.txt <- c(Parents.txt, s)
+            Parents.y <- c(Parents.y, ln)
         }
+
+        # add legend for gene model
+        if(gene.legend){
+            par.mar <- oldPar.mar.m
+            par.mar[3] <- par.mar[2] <- par.mar[4] <- 0
+            par(fig = c(0.78, 1, 0.01, fig.h + 0.01),
+                mar = par.mar, new = TRUE)
+            plot(start, xlim = c(0,1), ylim = c(0, nsplicement * 1.1),
+                 type = "n", xaxt = "n", yaxt = "n",
+                 xlab = "", ylab = "", frame.plot = FALSE)
+            for(i in seq_len(length(Parents.y))){
+                text(0, Parents.y[i], Parents.txt[i],
+                     xpd = TRUE, adj = 0, cex = legend.cex)
+            }
+        }
+
+        # add shape legend
+        if(length(unique(pch)) != 1){
+            if(length(pch) != ncol(value_y))
+                stop("length of 'pch' (", length(pch),
+                     ") not equal with numner of phenos (",
+                     ncol(value_y), ")")
+            par.mar <- oldPar.mar
+            par.mar[1] <- 0
+            par.mar[2] <- 0.5
+            par.mar[3] <- 0.5
+
+            par(mar = par.mar, fig = c(0.78, 0.98, fig.h, 0.4 + fig.h * 0.4),
+                new = TRUE)
+            plot(y = 1,
+                 x = 1,
+                 xlim = c(0, 1),
+                 ylim = c(0, 1),
+                 xlab = "", ylab = "",
+                 xaxt = 'n',
+                 yaxt = 'n',
+                 type = "n",
+                 frame.plot  = FALSE)
+            nms <- colnames(value_y)
+            hspace <- strwidth(" ", cex = legend.cex)
+            SHIFT <- strheight(" ", cex = legend.cex) * 1.25
+            for(i in seq_len(length(pch))){
+                points(x = hspace,
+                       y = 1 - SHIFT * i,
+                       cex = legend.cex, pch = pch[i])
+
+                text(3 * hspace, 1 - SHIFT * i, nms[i],
+                     xpd = TRUE, adj = 0, cex = legend.cex)
+            }
+        }
+
+
+        # add color legend
+        # set of mar
+        par.mar <- oldPar.mar
+        par.mar[1] <- 0.5
+        par.mar[2] <- 1.5
+        par(mar = par.mar, fig = c(0.78, 0.98, 0.4 + fig.h * 0.4, 1), new = TRUE)
+        plot(y = 12,
+             x = 1,
+             xlim = c(0, 1),
+             ylim = c(0, 1000),
+             xlab = "", ylab = "",
+             xaxt = 'n',
+             yaxt = 'n',
+             type = 'n',
+             frame.plot  = FALSE)
+        rect(xleft = rep(0, 1000),
+             ybottom = seq_len(1000),
+             xright = rep(4 * strwidth(" "), 1000),
+             ytop = seq_len(1000) + 1,
+             col = heatcols,
+             border = NA)
+        xy <- par("usr")
+        text(6 * strwidth(" "), 1000, round(value_c.max, 2), xpd = TRUE, adj = 0, cex = legend.cex)
+        text(6 * strwidth(" "), 750, round(t1, 2), xpd = TRUE, adj = 0, cex = legend.cex)
+        text(6 * strwidth(" "), 500, round(t2, 2), xpd = TRUE, adj = 0, cex = legend.cex)
+        text(6 * strwidth(" "), 250, round(t3, 2), xpd = TRUE, adj = 0, cex = legend.cex)
+        text(6 * strwidth(" "), 0, round(value_c.min, 2), xpd = TRUE, adj = 0, cex = legend.cex)
+        text(xy[1] - strwidth(" "), 1000, legendtitle,
+             xpd = TRUE, cex = legend.cex, adj = c(1, 0), srt = 90)
+
+
+
+        # plot EFFs
+        # set of mar
+        par.mar <- oldPar.mar.m
+        par.mar[1] <- 0
+
+        # set of par and plot frame
+        par(fig = c(0, 0.78, fig.h + 0.01, 1), mar = par.mar, new = TRUE)
+        plot(x = POS[1], y = value_y[1, 1], type = "n",
+             xlim = c(start, end), ylim = c(0, max(value_y, na.rm = TRUE)),
+             col = 3, cex = 0.5,
+             xaxt = "n", xlab = "", ylab = ylab)
+
+        if(missing(col)) col <- seq_len(nrow(value_y)) else
+            col <- if(length(col) == 1) rep(col, nrow(value_y)) else col
+
+        if(missing(pch)) pch <- 20
+        pch <- if(length(pch) != nrow(value_y)) rep(pch, nrow(value_y)) else pch
+
+
+        # plot points indicate EFFs
+        # TODO
+        # 1. add color for pValue
+        # 2. height for EFF
+        for(i in seq_len(ncol(value_y))){
+            points(x = POS,
+                   y = value_y[,i],
+                   cex = 1, col = cols[,i], pch = pch[i])
+        }
+
+        # add title
+        if(!missing(main))
+            title(main = main)
+
+
+
+    } else {
+        # add shape legend
+        if(length(unique(pch)) != 1){
+            if(length(pch) != ncol(value_y))
+                stop("length of 'pch' (", length(pch),
+                     ") not equal with numner of phenos (",
+                     ncol(value_y), ")")
+            par.mar <- oldPar.mar
+            par.mar[1] <- 0
+            par.mar[2] <- 0.5
+            par.mar[3] <- 0.5
+
+            par(mar = par.mar, fig = c(0.78, 0.98, 0.1, 0.4),
+                new = TRUE)
+            plot(y = 1,
+                 x = 1,
+                 xlim = c(0, 1),
+                 ylim = c(0, 1),
+                 xlab = "", ylab = "",
+                 xaxt = 'n',
+                 yaxt = 'n',
+                 type = "n",
+                 frame.plot  = FALSE)
+            nms <- colnames(value_y)
+            hspace <- strwidth(" ", cex = legend.cex)
+            SHIFT <- strheight(" ", cex = legend.cex) * 1.25
+            for(i in seq_len(length(pch))){
+                points(x = hspace,
+                       y = 1 - SHIFT * i,
+                       cex = legend.cex, pch = pch[i])
+
+                text(3 * hspace, 1 - SHIFT * i, nms[i],
+                     xpd = TRUE, adj = 0, cex = legend.cex)
+            }
+        }
+
+
+        # add color legend
+        # set of mar
+        par.mar <- oldPar.mar
+        par.mar[1] <- 0.5
+        par.mar[2] <- 1.5
+        par(mar = par.mar, fig = c(0.78, 0.98, 0.4, 1), new = TRUE)
+        plot(y = 1,
+             x = 1,
+             xlim = c(0, 1),
+             ylim = c(0, 1000),
+             xlab = "", ylab = "",
+             xaxt = 'n',
+             yaxt = 'n',
+             type = 'n',
+             frame.plot  = FALSE)
+        rect(xleft = rep(0, 1000),
+             ybottom = seq_len(1000),
+             xright = rep(4 * strwidth(" "), 1000),
+             ytop = seq_len(1000) + 1,
+             col = heatcols,
+             border = NA)
+        xy <- par("usr")
+        text(6 * strwidth(" "), 1000, round(value_c.max, 2), xpd = TRUE, adj = 0, cex = legend.cex)
+        text(6 * strwidth(" "), 750, round(t1, 2), xpd = TRUE, adj = 0, cex = legend.cex)
+        text(6 * strwidth(" "), 500, round(t2, 2), xpd = TRUE, adj = 0, cex = legend.cex)
+        text(6 * strwidth(" "), 250, round(t3, 2), xpd = TRUE, adj = 0, cex = legend.cex)
+        text(6 * strwidth(" "), 0, round(value_c.min, 2), xpd = TRUE, adj = 0, cex = legend.cex)
+        text(xy[1] - strwidth(" "), 1000, legendtitle,
+             xpd = TRUE, cex = legend.cex, adj = c(1, 0), srt = 90)
+
+
+        # plot EFFs
+        # set of mar
+        par.mar <- oldPar.mar.m
+        # set of par and plot frame
+        par(fig = c(0, 0.78, 0, 1), mar = par.mar, new = TRUE)
+        plot(x = POS[1], y = value_y[1,1], type = "n",
+             xlim = c(start, end), ylim = c(0, max(value_y, na.rm = TRUE)),
+             col = 3, cex = 0.5,
+             xlab = "", ylab = ylab)
+
+        if(missing(col)) col <- seq_len(nrow(value_y)) else
+            col <- if(length(col) == 1) rep(col, nrow(value_y)) else col
+
+        if(missing(pch)) pch <- 20
+        pch <- if(length(pch) != nrow(value_y)) rep(pch, nrow(value_y)) else pch
+
+
+        # plot points indicate EFFs
+        # TODO
+        # 1. add color for pValue
+        # 2. height for EFF
+        for(i in seq_len(ncol(value_y))){
+            points(x = POS,
+                   y = value_y[, i],
+                   cex = 1, col = cols[, i], pch = pch[i])
+        }
+
+        # add title
+        if(!missing(main))
+            title(main = main)
+
+
+
     }
-
-    # plot EFFs
-    # set of mar
-    par.mar <- oldPar.mar.m
-    par.mar[1] <- 0
-
-    # set of par and plot frame
-    par(fig = c(0, 0.82, fig.h + 0.01, 1), mar = par.mar, new = TRUE)
-    plot(x = POS[1], y = EFF[1,1], type = "n",
-         xlim = c(start, end), ylim = c(0, max(EFF, na.rm = TRUE)),
-         col = 3, cex = 0.5,
-         xaxt = "n", xlab = "", ylab = ylab)
-    cols <- rainbow(length(POS))
-
-    if(missing(col)) col <- seq_len(nrow(EFF)) else
-        col <- if(length(col) == 1) rep(col, nrow(EFF)) else col
-
-    if(missing(pch)) pch <- 20
-    pch <- if(length(pch) != nrow(EFF)) rep(pch, nrow(EFF)) else pch
-
-
-    # plot points indicate EFFs
-    # TODO
-    # 1. add color for pValue
-    # 2. height for EFF
-    heatcols <- rev(heat.colors(1100))
-    p <- -log10(p)
-    p.max <- max(p)
-    p.min <- min(p)
-    cols <- round((p - p.min + 1) / (p.max - p.min + 1) * 1000)
-    cols[,] <- heatcols[cols]
-    for(i in seq_len(nrow(EFF))){
-        points(x = rep(POS[i], ncol(EFF)),
-               y = EFF[i,],
-               cex = 1, col = cols[i,], pch = pch[i])
-    }
-
-    # add title
-    if(!missing(main))
-        title(main = main)
-
-
-    # add color legend
-    # set of mar
-    par.mar <- oldPar.mar
-    par.mar[1] <- 0
-    par.mar[2] <- 1.5
-    par(mar = par.mar, fig = c(0.82, 0.98, fig.h + 0.01, 1), new = TRUE)
-    plot(y = 9,
-         x = 1,
-         xlim = c(0, 1),
-         ylim = c(0, 1000),
-         xaxt = 'n',
-         yaxt = 'n',
-         type = 'n',
-         frame.plot  = FALSE)
-    rect(xleft = rep(0, 1000),
-         ybottom = seq_len(1000),
-         xright = rep(1, 1000),
-         ytop = seq_len(1000) + 1,
-         col = heatcols,
-         border = NA)
-    t1 <- p.max - (p.max - p.min) / 4 * 1
-    t2 <- p.max - (p.max - p.min) / 4 * 2
-    t3 <- p.max - (p.max - p.min) / 4 * 3
-    xy <- par("usr")
-    text(xy[2] + strwidth(" "), 1000, round(p.max), xpd = TRUE, adj = 0)
-    text(xy[2] + strwidth(" "), 750, round(t1), xpd = TRUE, adj = 0)
-    text(xy[2] + strwidth(" "), 500, round(t2), xpd = TRUE, adj = 0)
-    text(xy[2] + strwidth(" "), 250, round(t3), xpd = TRUE, adj = 0)
-    text(xy[2] + strwidth(" "), 0, round(p.min), xpd = TRUE, adj = 0)
-    text(xy[1] - strwidth("  "), 1000, expression("-log"[10]~italic(p)~"Value"),
-         xpd = TRUE, cex = 1, adj = 1, srt = 90)
-
 }
+
 
 
 # phenos scale function here

@@ -12,7 +12,7 @@
 
 <meta name="author" content="Zhang RenLiang" />
 
-<meta name="date" content="2022-08-19" />
+<meta name="date" content="2022-09-19" />
 
 <title>‘geneHapR’ data</title>
 
@@ -31,13 +31,13 @@ document.addEventListener('DOMContentLoaded', function(e) {
 </script>
 
 <style type="text/css">
-  code{white-space: pre-wrap;}
-  span.smallcaps{font-variant: small-caps;}
-  span.underline{text-decoration: underline;}
-  div.column{display: inline-block; vertical-align: top; width: 50%;}
-  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-  ul.task-list{list-style: none;}
-    </style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
 
 
 
@@ -239,7 +239,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">‘geneHapR’ data</h1>
 <h4 class="author">Zhang RenLiang</h4>
-<h4 class="date">2022-08-19</h4>
+<h4 class="date">2022-09-19</h4>
 
 
 
@@ -249,33 +249,87 @@ outputs are.</p>
 <h2>Inputs</h2>
 <p>Before using <code>geneHapR</code> there were several data set should
 be prepared by the user.</p>
-<p>A file stored difference in DNA level among individuals is necessary
-for haplotype analysis. This file could be supplied in <a href="https://learn.gencore.bio.nyu.edu/ngs-file-formats/vcf-format/" title="VCF format at hts-specs">variant call format (VCF)</a> format or
-<a href="https://learn.gencore.bio.nyu.edu/ngs-file-formats/fastaa-format/">FASTA</a>
-format or multi-aligned format.</p>
-<p>The files hereafter are also recommend for filtration, visualization,
-and phenotpye association analysis. An annotation file in <a href="https://learn.gencore.bio.nyu.edu/ngs-file-formats/gff3-format/">General
-Feature Format (GFF)</a> format stored the annotations for the target
-species. And another two tables stored phenotype data and individuals
-grouping information separately, certainly this two table also could be
-supplied as ‘R’ object of <code>data.frame</code> class.</p>
-<div id="input-data" class="section level3">
-<h3>Input data</h3>
+<p>Genotypes of each individuals/accessions in <a href="https://learn.gencore.bio.nyu.edu/ngs-file-formats/vcf-format/" title="VCF format at hts-specs"><strong>variant call format
+(VCF)</strong></a> format or <strong>p.link</strong> (ped/map) format or
+<strong>table</strong> format or <a href="https://learn.gencore.bio.nyu.edu/ngs-file-formats/fastaa-format/"><strong>FASTA</strong></a>
+format is necessary for haplotype analysis. <strong>Annotations</strong>
+stored in <strong>GFF/GFF3</strong> or <strong>BED4/BED6</strong> format
+is needed when visualization of variants on gene model or filtration of
+variants according annotations. Phenotype data is needed when compare
+phenotype differences between haplotypes. Longitude and latitude
+information are needed when display distribution of haplotypes.
+Accession group information is optionally needed when plot haplonet.
+Those data format are details as bellow:</p>
+<p><strong>VCF</strong>: Introduction of this format could be found at
+<a href="https://learn.gencore.bio.nyu.edu/ngs-file-formats/vcf-format/" class="uri">https://learn.gencore.bio.nyu.edu/ngs-file-formats/vcf-format/</a></p>
+<p><strong>Fasta</strong>: Introduction of this format could be found at
+<a href="https://learn.gencore.bio.nyu.edu/ngs-file-formats/gff3-format/" class="uri">https://learn.gencore.bio.nyu.edu/ngs-file-formats/gff3-format/</a>.</p>
+<p><strong>p.link (ped/map)</strong>: The fields in a MAP file are:
+Chromosome; Marker ID; Genetic distance; Physical position. For
+example.:</p>
+<pre><code>Chr1    rs11511647  0   26765
+Chr1    rs3883674   0   32380
+Chr1    rs12218882  0   48172</code></pre>
+<p>The field in a PED file are: Family ID; Sample ID; Paternal ID;
+Maternal ID; Sex (1=male; 2=female; other=unknown); Affection
+(0=unknown; 1=unaffected; 2=affected) and Genotypes (space or tab
+separated, 2 for each marker. 0=missing). For example:</p>
+<pre><code>NA06985 NA06985 0   0   1   1   A   T   T   T   G   G
+NA06991 NA06991 0   0   1   1   C   T   T   T   G   G
+NA06993 NA06993 0   0   1   1   C   T   T   T   G   G
+NA06994 NA06994 0   0   1   1   C   T   T   T   G   G</code></pre>
+<p><strong>Table</strong>: The first five column are fix as Chrome name,
+position, reference nucleotide, alter nucleotide and additional
+information. Accession genotype should be in followed columns. “-” will
+be treated as Indel. “.” and “N” will be treated as missing data.
+Additional information should be in format “tag=value”. Heterozygote
+site should be in “A/G” or “A|G” format. For example:</p>
+<pre><code>CHROM   POS REF ALT INFO        Ac1 Ac2 Ac3
+Chr1    108 A   T   aa=A23G     T   A   A
+Chr1    309 A   C   aa=STOP     C   C   A
+Chr1    563 GT  T   aa=SHIFT    T   GT  GT
+Chr1    949 C   A   aa=S88A     A   C/A C</code></pre>
+<p><strong>GFF/GFF3:</strong> Introduction of this format could be found
+at <a href="https://learn.gencore.bio.nyu.edu/ngs-file-formats/gff3-format/" class="uri">https://learn.gencore.bio.nyu.edu/ngs-file-formats/gff3-format/</a></p>
+<p><strong>BED4/BED6</strong>:As the definition of <a href="http://genome.ucsc.edu/FAQ/FAQformat.html#format1">UCSC</a>. The
+BED6 contains 6 columns, which are 1) chromosome name, 2) chromosome
+start, 3) chromosome end, 4) name, 5) score and 6) strand. The BED4
+format contains the first 4 column. <strong><em>BE NOTE
+THAT</em></strong>: the fourth column was used to definition the
+transcripts name and types, separated by a space, like eg.: “HD1.1 CDS”
+or “HD1.1 URTs”.</p>
+<p>For example:</p>
+<pre><code>Chr8    678 890     HD1.1 CDS   .   -
+Chr8    891 989     HD1.1 UTR   .   -
+Chr8    668 759     HD1.2 CDS   .   -
+Chr8    908 989     HD1.2 CDS   .   -</code></pre>
+<p>This example indicate a small gene named as HD1 have two transcripts,
+named as HD1.1 and HD1.2, separately. HD1 has a CDS and a UTR region;
+while HD1.2 has two CDS region.</p>
+<p><strong>Phenotype data</strong> and <strong>accession
+Information</strong>: The phenotype data and accession information, eg.:
+group information and geo-coordinate, should be stored in tab delimited
+table. First column as names of accessions/individuals and phenotype and
+information are lies in followed columns.</p>
+<div id="imported-data-in-r" class="section level3">
+<h3>Imported data in R</h3>
 <p><strong>VCF file</strong> (variant call format file) imported into
 ‘R’ as <strong>vcfR</strong> object.</p>
-<p><strong>GFF file</strong> (genome annotations) imported into ‘R’ as
-<strong>GRanges</strong> object.</p>
+<p><strong>P.link</strong> (ped/map) imported into ‘R’ as
+<strong>list</strong> object.</p>
+<p><strong>GFF/GFF3</strong> and <strong>BED4/BED6</strong> file (genome
+annotations) imported into ‘R’ as <strong>GRanges</strong> object.</p>
 <p><strong>DNA sequences</strong> (fasta format) imported into ‘R’ as
 <strong>DNAStringSet</strong> object.</p>
-<p><strong>Phenotype data</strong> and <strong>accession group
-information</strong> imported into ‘R’ as <strong>data.frame</strong>
-objects.</p>
+<p><strong>Genotype data stored in table</strong> and <strong>Phenotype
+data</strong> and <strong>accession group information</strong> imported
+into ‘R’ as <strong>data.frame</strong> objects.</p>
 </div>
 </div>
 <div id="outputresults" class="section level2">
 <h2>Output/results</h2>
 <p>The main results are <code>hapResult</code> and
-<code>hapSummary</code> could be export as tab delimed tables; and
+<code>hapSummary</code> could be export as tab delimited tables; and
 visualizations could be export as figures format or PDF files.</p>
 <div id="hapresult-and-hapsummary" class="section level3">
 <h3><code>hapResult</code> and <code>hapSummary</code></h3>
@@ -295,7 +349,7 @@ information and annotations of the current sites. And followed elements
 represents genotype of the corresponding haplotype.</p>
 <p><strong>Part III</strong>: The part III of <code>hapResult</code>
 consists of one column named as <strong>Accession</strong>, while the
-part III of <code>hapSummary</code> consof two columns named as
+part III of <code>hapSummary</code> consists two columns named as
 <strong>Accession</strong> and <strong>freq</strong>.</p>
 <p>The <strong>differences</strong> between <code>hapResult</code> and
 <code>hapSummary</code> only lied in <strong>part III</strong>: (a)

@@ -7,10 +7,12 @@
 plotEFF(siteEFF, gff = gff,
         Chr = Chr, start = start, end = end,
         showType = c("five_prime_UTR", "CDS", "three_prime_UTR"),
-        CDS.height = 1, cex = 0.1, col = col, pch = 20,
-        main = main, legend.cex = 0.8, legend.ncol = legend.ncol,
+        CDS.height = CDS.height, cex = 0.1, col = col, pch = 20,
+        main = main, legend.cex = 0.8, gene.legend = TRUE,
         markMutants = TRUE, mutants.col = 1, mutants.type = 1,
-        ylab = "effect")
+        y = c("pvalue","effect"), ylab = ylab,
+        legendtitle = legendtitle,
+        par.restore = TRUE)
 }
 \arguments{
 \item{siteEFF}{matrix, column name are pheno names and row name are site position}
@@ -41,7 +43,7 @@ range: \verb{[0,1]}}
 
 \item{legend.cex}{a numeric control the legend size}
 
-\item{legend.ncol}{the number of columns in which to set the legend items}
+\item{gene.legend}{whether add legend for gene model}
 
 \item{markMutants}{whether mark mutants on gene model, default as \code{TRUE}}
 
@@ -49,7 +51,10 @@ range: \verb{[0,1]}}
 
 \item{mutants.type}{a vector of line types}
 
-\item{ylab}{character, yaxis label}
+\item{y, ylab, legendtitle}{\emph{y:} indicate either pvalue or effect should be used as y axix,
+\strong{ylab,legendtitle:},character, if missing, the value will be decide by y.}
+
+\item{par.restore}{default as \code{TRUE}, wether restore the origin par after ploted EFF.}
 }
 \value{
 No return value, called for side effects

@@ -4,9 +4,15 @@
 #' hapVsPheno(hap,
 #'            pheno,
 #'            phenoName, hapPrefix = "H",
-#'            title = "test1G0387",
-#'            mergeFigs = TRUE,
-#'            minAcc = 5, outlier.rm = TRUE, ...)
+#'            title = "",
+#'            comparisons = comparisons,
+#'            method = "t.test",
+#'            method.args = list(),
+#'            symnum.args = list(),
+#'            mergeFigs = FALSE,
+#'            angle = angle,
+#'            minAcc = 5, outlier.rm = TRUE,
+#'            ...)
 #' @examples
 #'
 #' \donttest{
@@ -33,12 +39,20 @@
 #' @param hapPrefix prefix of hapotypes, default as "H"
 #' @param title a charater which will used for figure title
 #' @param mergeFigs bool type, indicate whether merge the heat map and box
-#' plot or not. Default as `TRUE`
+#' plot or not. Default as `FALSE`
 #' @param minAcc If observations number of a Hap less than this number will
 #' not be compared with others or be ploted. Should not less than 3 due to the
 #' t-test will meaninglessly. default as 5
 #' @param outlier.rm whether remove ouliers, default as TRUE
-#' @param ... options will pass to `ggpubr()`
+#' @param angle the angle of x labels
+#' @param comparisons a list contains comparison pairs
+#' eg. `list(c("H001", "H002"), c("H001", "H004"))`,
+#' or a character vector contains haplotype names for comparison,
+#' or "none" indicates do not add comparisons.
+# @param method a character string indicating which method to be used for comparing means.
+# @param ... options will pass to `ggpubr`
+#' @inheritDotParams ggpubr::ggviolin
+#' @inheritParams ggpubr::stat_compare_means
 #' @importFrom stats na.omit t.test
 #' @importFrom rlang .data
 #' @export
@@ -50,12 +64,19 @@ hapVsPheno <- function(hap,
                        pheno,
                        phenoName,
                        hapPrefix = "H",
-                       title = "test1G0387",
-                       mergeFigs = TRUE,
+                       title = "",
+                       comparisons = comparisons,
+                       method = "t.test",
+                       method.args = list(),
+                       symnum.args = list(),
+                       mergeFigs = FALSE,
+                       angle = angle,
                        minAcc = 5,
                        outlier.rm = TRUE,
                        ...)
 {
+    if(! inherits(hap, "hapResult"))
+        stop("hap should be object of 'hapResult' class")
     if (missing(phenoName)) {
         warning("phenoName is null, will use the first pheno")
         phenoName <- colnames(pheno)[1]
@@ -219,6 +240,9 @@ hapVsPheno <- function(hap,
             add = "boxplot",
             ...
         )
+
+    if(missing(angle))
+        angle <- ifelse(length(hps) >= 6, 45, 0)
     fig2 <- fig2 +  # do not modify here
         #    stat_compare_means(label.y = max(data[,2]))+
         #    no comparision by remove this line (Kruskal-Wallis test)
@@ -226,18 +250,39 @@ hapVsPheno <- function(hap,
         ggplot2::theme(
             plot.subtitle = ggplot2::element_text(hjust = 0.5),
             axis.text.x = ggplot2::element_text(
-                angle = ifelse(length(hps) >= 6, 45, 0),
+                angle = angle,
                 hjust = ifelse(length(hps) >= 6, 1, 0.5)
             ),
             plot.title = ggplot2::element_text(hjust = 0.5)
         ) +
         ggplot2::ylab(stringr::str_split(phenoName, "[.]")[[1]][1])
+
+    if(! missing(comparisons)){
+        if(inherits(comparisons, "list")) {
+            for(i in seq_len(length(comparisons)))
+                comparisons[[i]] <- hps[comparisons[[i]]]
+            my_comparisons <- comparisons
+        } else if(inherits(comparisons, "character")){
+            if(comparisons[1] == "none") {
+                my_comparisons <- list()
+            } else {
+                comparisons <- hps[comparisons]
+                probe <- c()
+                for(i in my_comparisons)
+                    probe <- c(probe, TRUE %in% (i %in% comparisons))
+                my_comparisons <- my_comparisons[probe]
+            }
+        }
+    }
+
     if (length(my_comparisons) > 0) {
         fig2 <- fig2 + # 添加箱线图
             ggpubr::stat_compare_means(
                 comparisons = unique(my_comparisons),
                 paired = FALSE,
-                method = "t.test"
+                method.args = method.args,
+                symnum.args = symnum.args,
+                method = method
             )
     }
 
@@ -292,6 +337,7 @@ hapVsPheno <- function(hap,
 #' if single file was generated, file name will be formed by
 #' prefix `filename.prefix`, a dot and surfix `filename.surfix`
 #' @inheritParams hapVsPheno
+#' @inheritDotParams hapVsPheno
 #' @examples
 #' data("geneHapR_test")
 #'

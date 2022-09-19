@@ -127,7 +127,8 @@ only one CHROM should be in vcf, consider set 'filter_Chr' as 'TRUE'
     hap <- hapData$hap
     # Drop hyb or N
     if (hyb_remove) {
-        hap[!hap %in% allS_new$homo] <- NA
+        hap[grepl("|", hap, fixed = T)] <- NA
+        hap[grepl("/", hap, fixed = T)] <- NA
         hap <- na.omit(hap)
         options <- c(options, hyb_remove = "YES")
     } else
@@ -178,8 +179,13 @@ order_vcf <- function(vcf) {
 }
 
 
-#
-# return data.frame, individuals in rows and positions in cols
+# return: data.frame, individuals in rows and positions in cols
+# with additional attrs
+# eg. # $hap
+#     #    41  136
+#     # a  A   A|T
+#     # b  G   G
+#     # $allS_new
 vcf2hap_data <- function(vcf,
                          allS_new = allS_new,
                          REF = REF,
@@ -200,6 +206,7 @@ vcf2hap_data <- function(vcf,
 
     # convert "." into "N/N"
     hap[hap == "."] <- "N/N"
+    hap[is.na(hap)] <- "N/N"
 
     # convert Indel(biallelic site) into +/-
     nr = nrow(hap)
@@ -215,7 +222,9 @@ vcf2hap_data <- function(vcf,
                 update_allS(allS_new, REF = REF[l], ALT = ALT[l])
     }
 
-    hap <- t(hap)
+    hap <- gsub(pattern = "|", replacement = "/", x = hap, fixed = TRUE) %>%
+        t() %>%
+        toupper()
 
     # reform the genotypes
     # homo site convert into single
