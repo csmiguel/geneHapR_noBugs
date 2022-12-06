@@ -16,20 +16,20 @@ Authors@R:
            family = "Guanqing",
            email = "jiaguanqing@caas.cn", 
            role = c("aut")))
-Version: 1.1.1
+Version: 1.1.5
 RoxygenNote: 7.2.1
 LazyData: True
-Imports: ape, Biostrings, ggpubr, GenomicRanges, magrittr, maps,
-        methods, muscle, IRanges, pegas, reshape2, rlang, rtracklayer,
-        trackViewer, stats, stringdist, stringr, tibble, tidyr, utils,
-        vcfR
+Imports: ape, Biostrings, ggpubr, genetics, GenomicRanges, maps,
+        methods, IRanges, pegas, reshape2, rlang, rtracklayer,
+        trackViewer, shiny, shinyjs, stats, stringdist, stringr,
+        tibble, tidyr, utils, vcfR
 Depends: ggplot2, R (>= 4.0.0)
-Suggests: mapdata, maptools, knitr, rmarkdown
+Suggests: mapdata, maptools, muscle, knitr, rmarkdown
 License: GPL-3
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2022-09-19 13:42:11 UTC; zhang
+Packaged: 2022-12-06 18:47:54 UTC; zhang
 Author: Zhang Renliang [aut, cre],
   Jia Guanqing [aut]
 Repository: CRAN
-Date/Publication: 2022-09-19 14:16:19 UTC
+Date/Publication: 2022-12-07 00:00:02 UTC

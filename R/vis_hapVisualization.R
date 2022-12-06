@@ -74,7 +74,7 @@ hap_summary <- function(hap,
 #'              hapPrefix = "H",
 #'              title = "",
 #'              geneName = geneName,
-#'              INFO_tag = INFO_tag,
+#'              INFO_tag = NULL,
 #'              tag_split = tag_split,
 #'              tag_field = tag_field,
 #'              tag_name = tag_name,
@@ -156,7 +156,7 @@ plotHapTable <- function(hapSummary,
                          hapPrefix = "H",
                          title = "",
                          geneName = geneName,
-                         INFO_tag = INFO_tag,
+                         INFO_tag = NULL,
                          tag_split = tag_split,
                          tag_field = tag_field,
                          tag_name = tag_name,
@@ -257,7 +257,7 @@ plotHapTable <- function(hapSummary,
     }
     hps <- rbind(ALLELE, hps)
     # Add extra information
-    if (! missing(INFO_tag)) {
+    if (! is.null(INFO_tag)) {
         m <- "length of 'tag_split', 'tag_name' and 'tag_field' should be equal with 'INFO_tag'"
         if(! missing(tag_split))
             if(length(INFO_tag) != length(tag_split))
@@ -415,7 +415,8 @@ plotHapTable <- function(hapSummary,
 #'                       Chr,
 #'                       startPOS, endPOS,
 #'                       type = "pin", cex = 0.7,
-#'                       CDS_h = 0.05, fiveUTR_h = 0.02, threeUTR_h = 0.01)
+#'                       CDS_h = 0.05, fiveUTR_h = 0.02, threeUTR_h = 0.01,
+#'                       geneElement = geneElement)
 #' @examples
 #' \donttest{
 #' data("geneHapR_test")
@@ -425,9 +426,9 @@ plotHapTable <- function(hapSummary,
 #'                       endPOS = 8210,
 #'                       cex = 0.75)
 #' }
-#' @importFrom trackViewer lolliplot
 #' @importFrom GenomicRanges GRanges
 #' @importFrom GenomicRanges strand
+#' @importFrom trackViewer lolliplot
 #' @importFrom IRanges IRanges `%over%`
 #' @import tidyr
 #' @param gff gff
@@ -441,6 +442,7 @@ plotHapTable <- function(hapSummary,
 #'  "pie.stack" or "flag"
 #' @param CDS_h,fiveUTR_h,threeUTR_h The height of CDS 5'UTR and 3'UTR
 #' in gene model
+#' @param geneElement ploted elements, eg.: c("CDS","five_prime_UTR")
 #' @return No return value
 #' @export
 
@@ -453,10 +455,10 @@ displayVarOnGeneModel <- function(gff,
                                   cex = 0.7,
                                   CDS_h = 0.05,
                                   fiveUTR_h = 0.02,
-                                  threeUTR_h = 0.01)
+                                  threeUTR_h = 0.01,
+                                  geneElement = geneElement)
 {
     # lolliplot
-    requireNamespace("trackViewer")
     requireNamespace("tidyr")
     if (missing(gff))
         stop("gff is missing!")
@@ -467,16 +469,17 @@ displayVarOnGeneModel <- function(gff,
     if (inherits(hapSummary, 'hapResult'))
         hapSummary <- hap_summary(hapSummary)
 
-
+    s <- sites(hapSummary)
     meta <- hapSummary[seq_len(4), -1]
+
     if ("Accession" %in% colnames(meta)) {
         meta <- meta[, colnames(meta) != "Accession"]
     }
     if ("freq" %in% colnames(meta)) {
-        meta <- meta[, colnames(meta) != "freq"]
+        meta <- meta[, colnames(meta) != "freq"] %>% data.frame()
     }
 
-    POS = meta[2, ] %>% as.numeric()
+    POS <- meta[2, ] %>% as.numeric()
     if (missing(Chr))
         Chr <- meta[1, 1]
     if (missing(startPOS))
@@ -491,9 +494,14 @@ displayVarOnGeneModel <- function(gff,
     #meta <- meta[,!is.na(meta[1,])]
     #POS <- as.numeric(meta[2,])
 
-
-    geneElement <- c("CDS", "three_prime_UTR", "five_prime_UTR")
-
+    if(missing(geneElement)){
+        allType <- unique(gff$type) %>% as.vector()
+        p1 <- stringr::str_detect(tolower(allType), pattern = "promoter")
+        p2 <- stringr::str_detect(tolower(allType), pattern = "utr")
+        p3 <- stringr::str_detect(tolower(allType), pattern = "cds")
+        p <- p1 | p2 | p3
+        geneElement <- allType[p]
+    }
     SNP.gr <- GenomicRanges::GRanges(
         Chr,
         IRanges::IRanges(POS, width = 1,
@@ -513,13 +521,13 @@ displayVarOnGeneModel <- function(gff,
 
     over <- gff[gff %over% gene]
     over$height[over$type == "CDS"] <- CDS_h
+    over$height[over$type != "CDS"] <- CDS_h * 0.5
     over$height[over$type == "three_prime_UTR"] <- threeUTR_h
     over$height[over$type == "five_prime_UTR"] <- fiveUTR_h
 
     features <- over[over$type %in% geneElement]
     strands <- as.character(GenomicRanges::strand(features))
     layerID <- unlist(features$Parent)
-    layerID <- stringr::str_remove_all(layerID, ".v2.2")
     layerID <- paste0(layerID, "(",
                       ifelse(strands == "+", "5'->3'", "3'<-5'"), ")")
     features$featureLayerID <- layerID

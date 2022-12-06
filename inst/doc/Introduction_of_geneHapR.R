@@ -1,3 +1,18 @@
+## ----Out Put Format1, echo=FALSE, fig.align='center', fig.cap="Cartoon representation of hapResult and hapSummary contents", fig.height=4, fig.width=6----
+plot(c(0,5),c(0,5), axes = FALSE, type = "n", xlab="", ylab ="", frame.plot = F)
+rect(xleft=0, ybottom=0, xright=0.5, ytop=4.5)
+rect(xleft=0.5, ybottom=3.5, xright=4, ytop=4.5)
+rect(xleft=0.5, ybottom=0, xright=4, ytop=3.5)
+rect(xleft=4, ybottom=0, xright=5, ytop=3.5)
+text(0.25, 4.75, "Part I", cex=1)
+text(2.25, 4.75, "Part II", cex=1)
+text(4.5, 4.75, "Part III", cex=1)
+text(0.25, 3, "Lead column", cex=1, srt = 270)
+text(2.25, 4.15, "Sites information", cex=1)
+text(2.25, 3.85, "(CHROM, POS, INFO, ALLELE)", cex=0.8)
+text(2.25, 2, "Genotypes", cex=1)
+text(4.5, 2, "Accessions (freq)", cex=1, srt= 270)
+
 ## ----include=FALSE------------------------------------------------------------
 NOT_CRAN <- identical(tolower(Sys.getenv("NOT_CRAN")), "true")
 knitr::opts_chunk$set(purl = NOT_CRAN)
@@ -121,16 +136,16 @@ head(AccINFO)
 ## ----haplotype calculation from vcf, eval=NOT_CRAN, include=TRUE, message=FALSE, warning=FALSE----
 hapResult <- vcf2hap(vcf,
                      hapPrefix = "H",
-                     hyb_remove = TRUE,
-                     na.drop = TRUE)
+                     hetero_remove = TRUE,
+                     na_drop = TRUE)
 hapResult
 
 ## ----haplotype calculation from seqs, eval=FALSE------------------------------
 #  hapResult <- seqs2hap(seqs,
 #                        Ref = names(seqs)[1],
 #                        hapPrefix = "H",
-#                        hyb_remove = TRUE,
-#                        na.drop = TRUE,
+#                        hetero_remove = TRUE,
+#                        na_drop = TRUE,
 #                        maxGapsPerSeq = 0.25)
 
 ## ----check site numbers, eval=NOT_CRAN----------------------------------------
@@ -269,9 +284,4 @@ plot(results$fig_Violin)
 #              width = 12,
 #              height = 8,
 #              res = 300)
-
-## ----site effect evaluation, eval=NOT_CRAN, fig.height=4, fig.width=6, message=FALSE, warning=FALSE, paged.print=FALSE----
-EFF <- siteEFF(hap = hapResult, pheno = pheno, quality = FALSE, p.adj = "BH")
-plotEFF(siteEFF = EFF, y = "effect", pch = c(20, 22))
-plotEFF(siteEFF = EFF, y = "pvalue", pch = c(20, 22))
 

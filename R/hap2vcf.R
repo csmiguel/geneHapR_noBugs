@@ -9,29 +9,22 @@
 #' vcf2hap(vcf,
 #'         hapPrefix = "H",
 #'         filter_Chr = FALSE,
-#'         Chr = Chr,
 #'         filter_POS = FALSE,
-#'         startPOS = startPOS,
-#'         endPOS = endPOS,
-#'         hyb_remove = TRUE,
-#'         na.drop = TRUE)
+#'         hetero_remove = TRUE,
+#'         na_drop = TRUE, ...)
 #' @author Zhangrenl
 #' @examples
 #' data("geneHapR_test")
 #' hapResult <- vcf2hap(vcf)
 #' @param vcf vcfR object imported by `import_vcf()`
-#' @param filter_Chr logical, whether filter vcf by chromosome or not. Default
-#' as `FALSE`. If set as `TRUE`, `Chr` is needed
-#' @param filter_POS logical, whether filter vcf by position or not. Default
-#' as `FALSE`. If set as `TRUE`, `startPOS` and `endPOS` are needed
+#' @param filter_Chr not used
+#' @param filter_POS not used
 #' @param hapPrefix prefix of hap names, default as "H"
-#' @param hyb_remove whether remove accessions contains hybrid site or not.
+#' @param hetero_remove whether remove accessions contains hybrid site or not.
 #' Default as `TRUE`
-#' @param na.drop whether remove accessions contains unknown allele site or not
+#' @param na_drop whether remove accessions contains unknown allele site or not
 #' Default as `TRUE`.
-#' @param Chr Chromosome name, needed when `filter_Chr` was set as `TRUE`
-#' @param startPOS,endPOS start and end position, needed when `filter_POS` was
-#' set as `TRUE`. In addition, `startPOS` must less than `endPOS`
+#' @param ... Parameters not used
 #' @seealso
 #' extract genotype from vcf:
 #' \code{\link[vcfR:extract_gt_tidy]{vcfR::extract_gt_tidy()}},
@@ -50,65 +43,35 @@
 vcf2hap <- function(vcf,
                     hapPrefix = "H",
                     filter_Chr = FALSE,
-                    Chr = Chr,
+                    # Chr = Chr,
                     filter_POS = FALSE,
-                    startPOS = startPOS,
-                    endPOS = endPOS,
-                    hyb_remove = TRUE,
-                    na.drop = TRUE) {
+                    # startPOS = startPOS,
+                    # endPOS = endPOS,
+                    hetero_remove = TRUE,
+                    na_drop = TRUE, ...) {
     requireNamespace('tidyr')
     allS_new <- allS
     options <- c(hapPrefix = hapPrefix)
     if (filter_Chr) {
-        if (missing(Chr))
-            stop("Chr must be character")
-        vcfChr <- vcf@fix[, 1]
-        probe <- vcfChr %in% Chr
-        vcf@fix <- vcf@fix[probe,]
-        vcf@gt <- vcf@gt[probe,]
-        options <- c(options, CHROM = Chr)
-    } else {
-        Chr <- unique(vcfR::getCHROM(vcf))
-        if (length(Chr) > 1)
-            stop("
-only one CHROM should be in vcf, consider set 'filter_Chr' as 'TRUE'
-                 ")
-        options <- c(options, CHROM = Chr)
+        message("Filter VCF by chromosome has been detached from vcf2hap")
     }
+    # else {
+    #         if (length(Chr) > 1)
+    #             stop("
+    # only one CHROM should be in vcf, consider set 'filter_Chr' as 'TRUE'
+    #                  ")
+    # }
 
     # filter Postion according given range
     if (filter_POS) {
-        if (missing(startPOS))
-            stop("startPOS must be numeric")
-        if (missing(endPOS))
-            stop("endPOS must be numeric")
-        if (startPOS >= endPOS)
-            stop("startPOS must less tan endPOS")
-        vcfPOS <- as.numeric(vcf@fix[, 2])
-        probe <- c(vcfPOS >= startPOS & vcfPOS <= endPOS)
-        if (!(TRUE %in% probe)) {
-            e = paste0(
-                "There is no variant in selected range.
-                Please check vcf file between ",
-                startPOS,
-                " and ",
-                endPOS,
-                "."
-            )
-            return(e)
-        }
-        vcf@fix <- vcf@fix[probe,]
-        vcf@gt <- vcf@gt[probe,]
-        options <- c(options, POS = paste0(startPOS, "-", endPOS))
-    } else {
-        POS <- vcfR::getPOS(vcf)
-        options <- c(options, POS = paste0(min(POS), "-", max(POS)))
+        message("Filter VCF by position has been detached from vcf2hap")
     }
 
     # extract information from vcf
-    vcf <- order_vcf(vcf)
     CHR <- vcfR::getCHROM(vcf)
     POS <- vcfR::getPOS(vcf)
+    options <- c(options, CHROM = unique(CHR))
+    options <- c(options, POS = paste0(min(POS), "-", max(POS)))
     REF <- vcfR::getREF(vcf)
     ALT <- vcfR::getALT(vcf)
     ALLELE <- paste0(REF, "/", ALT)
@@ -126,15 +89,15 @@ only one CHROM should be in vcf, consider set 'filter_Chr' as 'TRUE'
     allS_new <- hapData$allS_new
     hap <- hapData$hap
     # Drop hyb or N
-    if (hyb_remove) {
+    if (hetero_remove) {
         hap[grepl("|", hap, fixed = T)] <- NA
         hap[grepl("/", hap, fixed = T)] <- NA
         hap <- na.omit(hap)
-        options <- c(options, hyb_remove = "YES")
+        options <- c(options, hetero_remove = "YES")
     } else
-        options <- c(options, hyb_remove = "NO")
+        options <- c(options, hetero_remove = "NO")
 
-    if (na.drop) {
+    if (na_drop) {
         hap[hap == "N"] <- NA
         hap <- na.omit(hap)
         options <- c(options, NA_remove = "YES")
@@ -169,14 +132,6 @@ only one CHROM should be in vcf, consider set 'filter_Chr' as 'TRUE'
     return(hap)
 }
 
-
-order_vcf <- function(vcf) {
-    POS <- vcfR::getPOS(vcf)
-    probe <- order(POS)
-    vcf@fix <- vcf@fix[probe,]
-    vcf@gt <- vcf@gt[probe,]
-    return(vcf)
-}
 
 
 # return: data.frame, individuals in rows and positions in cols
@@ -240,8 +195,6 @@ vcf2hap_data <- function(vcf,
 
 
 
-
-
 assign_hapID <- function(hap, hapPrefix) {
     # name haps
     hap <- data.frame(hap, check.rows = FALSE, check.names = FALSE)
@@ -287,3 +240,4 @@ remove_redundancy_col <- function(hap) {
         hap <- hap[,-removecols]
     return(hap)
 }
+
