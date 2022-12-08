@@ -160,12 +160,11 @@
 #' Graham <jgraham@cs.sfu.ca>
 #'
 #' @examples # Pass LDheatmap a SnpMatrix object
-#' \donttest{data(geneHapR_test)
+#' data(geneHapR_test)
 #' plot_LDheatmap(hap = hapResult,
 #'                gff = gff,
 #'                Chr = hapResult[1,2],
 #'                start = 4000, end = 8200)
-#' }
 #' @export
 plot_LDheatmap <- function (hap,gff,Chr,start,end,geneID,
                             distances = "physical",

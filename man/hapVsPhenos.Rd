@@ -95,6 +95,7 @@ No return value
 hapVsPhenos
 }
 \examples{
+\donttest{
 data("geneHapR_test")
 
 oriDir <- getwd()
@@ -110,4 +111,5 @@ hapVsPhenos(hapResult,
             height = 8,
             res = 300)
 setwd(oriDir)
+}
 }

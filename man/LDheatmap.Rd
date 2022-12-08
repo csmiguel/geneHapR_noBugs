@@ -177,12 +177,11 @@ of \code{par()}.
 }
 \examples{
 # Pass LDheatmap a SnpMatrix object
-\donttest{data(geneHapR_test)
+data(geneHapR_test)
 plot_LDheatmap(hap = hapResult,
                gff = gff,
                Chr = hapResult[1,2],
                start = 4000, end = 8200)
-}
 }
 \references{
 Shin J-H, Blay S, McNeney B and Graham J (2006). LDheatmap:

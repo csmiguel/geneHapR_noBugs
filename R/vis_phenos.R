@@ -330,6 +330,7 @@ hapVsPheno <- function(hap,
 #' @inheritParams hapVsPheno
 #' @inheritDotParams hapVsPheno
 #' @examples
+#' \donttest{
 #' data("geneHapR_test")
 #'
 #' oriDir <- getwd()
@@ -345,6 +346,7 @@ hapVsPheno <- function(hap,
 #'             height = 8,
 #'             res = 300)
 #' setwd(oriDir)
+#' }
 #' @importFrom stats na.omit t.test
 #' @import grDevices
 #' @export
