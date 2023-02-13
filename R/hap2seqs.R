@@ -1,12 +1,6 @@
 #' @name seqs2hap
 #' @title Generate Hap Results from Seqs
 #' @description generate hapResults from aligned and trimed sequences
-#' @usage
-#' seqs2hap(seqs,
-#'          Ref = names(seqs)[1],
-#'          hetero_remove = TRUE, na_drop = TRUE,
-#'          maxGapsPerSeq = 0.25,
-#'          hapPrefix = "H", ...)
 #' @examples
 #' \donttest{
 #' data("geneHapR_test")
@@ -33,6 +27,7 @@
 #' Default as `TRUE`
 #' @param na_drop whether drop sequeces contain "N"
 #' Default as `TRUE`.
+#' @param pad The number length in haplotype names should be extend to.
 #' @param ... Parameters not used.
 #' @inherit hap_summary examples
 #' @return
@@ -42,7 +37,7 @@ seqs2hap <- function(seqs,
                      Ref = names(seqs)[1],
                      hetero_remove = TRUE, na_drop = TRUE,
                      maxGapsPerSeq = 0.25,
-                     hapPrefix = "H",
+                     hapPrefix = "H", pad = 3,
                      ...) {
     seqs <- as(seqs, "DNAStringSet")
     options <- c(hapPrefix = hapPrefix)
@@ -93,7 +88,7 @@ seqs2hap <- function(seqs,
     INFO <- CHR <- rep(NA, ncol(hap))
 
     # assign hapID
-    hap <- assign_hapID(hap, hapPrefix)
+    hap <- assign_hapID(hap, hapPrefix, pad)
     hap <- rbind(
         CHR = c("CHR", CHR, ""),
         POS = c("POS", POS, ""),

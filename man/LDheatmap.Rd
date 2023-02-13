@@ -11,18 +11,23 @@ plot_LDheatmap(
   Chr,
   start,
   end,
-  geneID,
+  geneID = NULL,
   distances = "physical",
   LDmeasure = "r",
   title = "Pairwise LD",
   add.map = TRUE,
-  map.height = map.height,
+  map.height = 1,
   colorLegend = TRUE,
   geneMapLocation = 0.15,
   geneMapLabelX = NULL,
   geneMapLabelY = NULL,
-  SNP.name = NULL,
+  SNP.name = TRUE,
   color = NULL,
+  color_gmodel = "grey",
+  color_snp = "grey",
+  color_snpname = "grey40",
+  cex_snpname = 0.8,
+  snpmarks_height = NULL,
   newpage = TRUE,
   name = "ldheatmap",
   vp.name = NULL,
@@ -81,20 +86,24 @@ being considered. Ignored when \code{add.map = FALSE}.}
 of the text indicating the total length of the genomic region
 being considered. Ignored when \code{add.map = FALSE}.}
 
-\item{SNP.name}{A vector of character string(s) of SNP name(s) to
-be labelled. Should match the names of SNPs in the provided object
-\code{gdat}, otherwise nothing is done.}
+\item{SNP.name}{a logical vector indicated wherther display SNP names using positions.}
 
 \item{color}{A range of colors to be used for drawing the heat map. Default
-is \code{grDevices::heat.colors(n = 20)}.}
+is \code{grDevices::colorRampPalette(c("red", "grey"))(30)}.}
+
+\item{color_gmodel, color_snp, color_snpname}{the color of gene model and snp and snp names respectively, default as grey80.}
+
+\item{cex_snpname}{the size of snp names/labels}
+
+\item{snpmarks_height}{the height of snp marks, if set as NULL, nothing will display on gene model
+where the heat map is going to be drawn.}
 
 \item{newpage}{If \code{TRUE} (default), the heat map will be drawn on a new page.}
 
 \item{name}{A character string specifying the name of the LDheatmap
 graphical object (\code{grob}) to be produced.}
 
-\item{vp.name}{A character string specifying the name of the viewport
-where the heat map is going to be drawn.}
+\item{vp.name}{A character string specifying the name of the viewport}
 
 \item{pop}{If \code{TRUE}, the viewport where the heat map is drawn is
 \code{pop}ped (i.e. removed) from the viewport tree after drawing.
@@ -188,9 +197,4 @@ Shin J-H, Blay S, McNeney B and Graham J (2006). LDheatmap:
 An R Function for Graphical Display of Pairwise Linkage
 Disequilibria Between Single Nucleotide Polymorphisms.
 Journal of Statistical Software, \bold{16} Code Snippet 3
-}
-\author{
-Ji-hyung Shin \href{mailto:shin@sfu.ca}{shin@sfu.ca}, Sigal Blay \href{mailto:sblay@sfu.ca}{sblay@sfu.ca}, Nicholas
-Lewin-Koh \href{mailto:nikko@hailmail.net}{nikko@hailmail.net}, Brad McNeney \href{mailto:mcneney@stat.sfu.ca}{mcneney@stat.sfu.ca}, Jinko
-Graham \href{mailto:jgraham@cs.sfu.ca}{jgraham@cs.sfu.ca}
 }
