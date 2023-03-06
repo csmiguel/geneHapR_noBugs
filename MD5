@@ -1,5 +1,5 @@
-a90e8d52cd7d12f8f686aee752550ea4 *DESCRIPTION
-f1da2f54725d6663f9c319324c5fdd9f *NAMESPACE
+7dcb0b813bc964468998947d117c7ca2 *DESCRIPTION
+c077f285c0ea4e0fab17813371fbfd38 *NAMESPACE
 ea29fcc9e0ad206fb2946cd0bfeaf4a3 *R/GUI_geneHapR.R
 be6d0fef590ecd4fe18d5370cd62422f *R/IO.R
 1366093c88fe120a62d420c552470e62 *R/adj_addINFO.R
@@ -22,14 +22,14 @@ c4c67bb49db6d0d21327e4d4d9be093d *R/lolliplot.R
 fb117739b9a1f7932f1b3107cec93751 *R/vis_geography.R
 e065e5829c8f3b56d53d3d5507f55e37 *R/vis_hapVisualization.R
 77a2fc28597909987f5f4574749254fd *R/vis_network.R
-14031368c5e8d3d59b57681ce8710f46 *R/vis_phenos.R
+340588b55f841f565f8b385ccb170395 *R/vis_phenos.R
 bf2f3baba5617cbff96f5052431531a9 *R/zzz.R
 cb4924f3573383fca290a0a8e2ca5294 *build/partial.rdb
 634e13e2a75df29d98f55c48a2dc6061 *build/vignette.rds
 1a14aba04a1fb7309e156edf1a61fd5d *data/geneHapR_test.RData
 84610bffd1f4d0c901c24970fdb001b6 *inst/doc/Introduction_of_geneHapR.R
 e5da6e203d8f454b004ea1e0dfbba733 *inst/doc/Introduction_of_geneHapR.Rmd
-b9ac2c3597740db6cad154b5eb02da16 *inst/doc/Introduction_of_geneHapR.html
+21fb9dd03765746f41cd0f59a3d1f4d4 *inst/doc/Introduction_of_geneHapR.html
 54e4424a03c7f85ee0fbf857ed1f5a8c *inst/extdata/annotation.bed6
 feebd3cd4d1fdd213e5cd52296f21f57 *inst/extdata/annotation.gff
 89c1a53853dbdbaa3023850d29f2db06 *inst/extdata/filtered1.vcf.gz
@@ -59,6 +59,7 @@ ba05367462e4f50968453c3819065470 *man/geneHapR-package.Rd
 c492fe8e82afcd9d29d443d543bedb69 *man/hap2hmp.Rd
 861b5b975cabbcee9eebf190f7743fff *man/hapDistribution.Rd
 dbb4311a8876309aff7f54b03260f68a *man/hapVsPheno.Rd
+35a03a9d9af206e820e865a2f4d604cd *man/hapVsPhenoPerSite.Rd
 f0d43e43ae56663b19e3d22f860b1a1b *man/hapVsPhenos.Rd
 d6176228a743b583869a7a75d24a28dd *man/hap_summary.Rd
 6cb559f6764455f7b3241e04b95ef516 *man/import_AccINFO.Rd

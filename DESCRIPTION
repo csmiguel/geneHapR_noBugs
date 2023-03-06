@@ -16,7 +16,7 @@ Authors@R:
            family = "Guanqing",
            email = "jiaguanqing@caas.cn", 
            role = c("aut")))
-Version: 1.1.7
+Version: 1.1.8
 RoxygenNote: 7.2.3
 LazyData: True
 Imports: ape, Biostrings, ggpubr, genetics, GenomicRanges, lolliplot,
@@ -28,8 +28,8 @@ Suggests: mapdata, maptools, muscle, knitr, rmarkdown
 License: GPL-3
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2023-02-13 02:25:59 UTC; zhang
+Packaged: 2023-03-02 12:35:53 UTC; zhang
 Author: Zhang Renliang [aut, cre],
   Jia Guanqing [aut]
 Repository: CRAN
-Date/Publication: 2023-02-13 10:10:02 UTC
+Date/Publication: 2023-03-06 14:00:06 UTC
