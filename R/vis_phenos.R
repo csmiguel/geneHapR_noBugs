@@ -340,7 +340,10 @@ hapVsPheno <- function(hap,
 #' data("geneHapR_test")
 #'
 #' oriDir <- getwd()
-#' setwd(tempdir())
+#' temp_dir <- tempdir()
+#' if(! dir.exists(temp_dir))
+#'   dir.create(temp_dir)
+#' setwd(temp_dir)
 #' # analysis all pheno in the data.frame of pheno
 #' hapVsPhenos(hapResult,
 #'             pheno,
@@ -516,7 +519,7 @@ hapVsPhenos <- function(hap,
 #' hapVsPhenoPerSite(hapResult, pheno, sitePOS = "4300")
 #' @export
 hapVsPhenoPerSite <- function(hap, pheno, phenoName, sitePOS,
-                              fileName,fileType = NULL, freq.min = 5, ...){
+                              fileName, fileType = NULL, freq.min = 5, ...){
     if(! inherits(hap, "hapResult"))
         stop("hap should be object of 'hapResult' class")
     if(missing(hap) | missing(pheno))

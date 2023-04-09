@@ -69,10 +69,10 @@ filter_vcf <- function(vcf,
         } else if(nr == 1){
             nf <- colnames(vcf@fix)
             ng <- colnames(vcf@gt)
-            vcf@fix <- matrix(vcf@fix[probe,], byrow = TRUE,
-                              dimnames = nf, nrow = nr)
-            vcf@gt <- matrix(vcf@gt[probe,], byrow = TRUE,dimnames = ng,
-                             nrow = nr)
+            vcf@fix <- matrix(vcf@fix[probe,], byrow = TRUE, nrow = nr)
+            colnames(vcf@fix) <- nf
+            vcf@gt <- matrix(vcf@gt[probe,], byrow = TRUE, nrow = nr)
+            colnames(vcf@gt) <- ng
         } else stop(" No variants after filter by position")
     }
 

@@ -44,7 +44,10 @@
 #'  vcfPath <- system.file("extdata", "var.vcf.gz", package = "geneHapR")
 #'
 #'  oldDir <- getwd()
-#'  setwd(tempdir())
+#'  temp_dir <- tempdir()
+#'  if(! dir.exists(temp_dir))
+#'    dir.create(temp_dir)
+#'  setwd(temp_dir)
 #'  # extract a single gene/range from large vcf
 #'  filterLargeVCF(VCFin = vcfPath, VCFout = "filtered.vcf.gz",
 #'                 Chr = "scaffold_1", POS = c(4300,5000), override = TRUE)
@@ -169,7 +172,8 @@ filterLargeVCF_One <- function(VCFin = VCFin,
     }
 
     # process variant information
-    subn <- nchar(Chr) + nchar(max(POS)) + 1
+    subn <- nchar(Chr) + nchar(max(POS)) + 3
+    total <- 0
     while (TRUE) {
         if (length(l) == 0)
             break
@@ -178,14 +182,18 @@ filterLargeVCF_One <- function(VCFin = VCFin,
         lc <- unlist(strsplit(substr(l, 1, subn), split = "\t"))
         Chrl <- lc[1]
         POSl <- as.numeric(lc[2])
-        if (Chrl == Chr & POSl >= start & POSl <= end)
+
+        if (Chrl == Chr & POSl >= start & POSl <= end){
             writeLines(l, con = oz)
+            total <- total + 1
+        }
 
         l <- readLines(iz, n = 1)
         nl <- nl + 1
 
     }
-    message("Processed ", nl, " lines. \nExit")
+    message("Processed ", nl, " lines. \n",
+            total, " variants remained.\nExit")
 }
 
 
@@ -249,7 +257,8 @@ filterLargeVCF_Multi <- function(VCFin = VCFin,
     }
 
     # process variant information
-    subn <- nchar(Chr) + nchar(max(unlist(POS))) + 10
+    subn <- nchar(Chr) + nchar(max(unlist(POS))) + 3
+    total <- rep(0, nC)
     while (TRUE) {
         if (length(l) == 0)
             break
@@ -263,8 +272,10 @@ filterLargeVCF_Multi <- function(VCFin = VCFin,
         for (i in seq_len(nF)) {
             if (Chrl == get(paste0("Chr", i)) &
                 POSl >= get(paste0("start", i)) &
-                POSl <= get(paste0("end", i)))
+                POSl <= get(paste0("end", i))){
                 writeLines(l, con = get(paste0("oz", i)))
+                total[i] <- total[i] + 1
+            }
         }
 
         l <- readLines(iz, n = 1)
@@ -272,7 +283,11 @@ filterLargeVCF_Multi <- function(VCFin = VCFin,
     }
 
     # close con
-    message("Processed ", nl, " lines. \nExit")
+    message("Processed ", nl, " lines.")
+    for (i in seq_len(nF)) {
+        message(total[i], " variants remained in ", VCFout[i])
+    }
+    message("Exit")
 }
 
 
@@ -315,8 +330,10 @@ filterLargeVCF_Multi <- function(VCFin = VCFin,
 #'                         "snp3kvars-CHR8-25947258-25951166-plink.map",
 #'                         package = "geneHapR")
 #'  oldDir <- getwd()
-#'  tmpdir <- tempdir()
-#'  setwd(tmpdir)
+#'  temp_dir <- tempdir()
+#'  if(! dir.exists(temp_dir))
+#'    dir.create(temp_dir)
+#'  setwd(temp_dir)
 #'  file.copy(pedfile, "test.ped")
 #'  file.copy(mapfile, "test.map")
 #'
@@ -327,8 +344,8 @@ filterLargeVCF_Multi <- function(VCFin = VCFin,
 #'
 #' setwd(oldDir)
 #'
-#' # delete tempDir
-#' unlink(tmpdir, recursive = TRUE)
+#' # delete temp_dir
+#' unlink(temp_dir, recursive = TRUE)
 #' }
 #' @return No return value
 #' @export
