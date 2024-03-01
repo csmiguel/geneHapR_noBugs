@@ -227,17 +227,17 @@ siteEFF <- function(hap, pheno, phenoNames, quality = FALSE, method = "auto",
                     )
                     if(min(sha.p, na.rm = TRUE) >= 0.05){
                         # all sub data set fit normal distribution
-                        res.ps <- t.test.ps(phenos)
+                        res.ps <- t_test_for_ps(phenos)
                     } else {
                         # not all sub data set fit normal distribution
-                        res.ps <- wilcox.test.ps(phenos)
+                        res.ps <- wilcox_test_for_ps(phenos)
                     }
                 }
             } else {
                 res.ps <- switch (method,
                                   "chisq.test" = chisq.test.ps(phenos),
-                                  "t.test" = t.test.ps(phenos),
-                                  "wilcox.test" = wilcox.test.ps(phenos)
+                                  "t.test" = t_test_for_ps(phenos),
+                                  "wilcox.test" = wilcox_test_for_ps(phenos)
                 )
             }
 
@@ -273,7 +273,7 @@ siteEFF <- function(hap, pheno, phenoNames, quality = FALSE, method = "auto",
 }
 
 
-t.test.ps <- function(phenos){
+t_test_for_ps <- function(phenos){
     p <- c()
     d <- c()
     l = length(phenos)
@@ -333,7 +333,7 @@ chisq.test.ps <- function(phenos){
 }
 
 
-wilcox.test.ps <- function(phenos){
+wilcox_test_for_ps <- function(phenos){
     p <- c()
     d <- c()
     l = length(phenos)
@@ -766,3 +766,25 @@ pscale <- function(x){
 }
 
 
+# comparison of all sites
+#' @title sites comparison
+#' @name sites_compar
+#' @description Used for all allele effect compare once
+#' @param hap object of hapResult class
+#' @param pheno a data.frame contains phenotypes
+#' @param phenoName the name of used phenotype
+#' @param hetero_remove removing the heter-sites or not, default as TRUE
+#' @param title the title of the figure
+#' @param file if provieds a file path the comparing results will saved to file.
+# @export
+compareAllSites <- function(hap, pheno, phenoName = names(pheno)[1],
+                            hetero_remove = TRUE, title = "", file = file){
+    if(! inherits(hap, "hapReult"))
+        stop("The haplotype result is provied in wrong format")
+    if(! inherits(pheno, "data.frame"))
+        warning("phenotype format warnning")
+    if(! missing(file))
+        if(file.exists(file))
+            warning("'", file,"' is already exist, it will be overwrited")
+
+}

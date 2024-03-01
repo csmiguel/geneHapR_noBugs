@@ -183,10 +183,10 @@ hapResult <- addINFO(hapResult,
 hapSummary <- hap_summary(hapResult)
 hapSummary
 
-## ---- eval=NOT_CRAN, fig.height=4, fig.width=6, message=FALSE, warning=FALSE, paged.print=FALSE----
+## ----eval=NOT_CRAN, fig.height=4, fig.width=6, message=FALSE, warning=FALSE, paged.print=FALSE----
 plotHapTable(hapSummary)
 
-## ---- eval=NOT_CRAN, fig.height=4, fig.width=6, message=FALSE, warning=FALSE, paged.print=FALSE----
+## ----eval=NOT_CRAN, fig.height=4, fig.width=6, message=FALSE, warning=FALSE, paged.print=FALSE----
 # add one annotation
 plotHapTable(hapSummary,
              hapPrefix = "H",
@@ -197,7 +197,7 @@ plotHapTable(hapSummary,
              replaceMultiAllele = TRUE,
              ALLELE.color = "grey90")
 
-## ---- eval=NOT_CRAN, fig.height=4, fig.width=6, message=FALSE, warning=FALSE, paged.print=FALSE----
+## ----eval=NOT_CRAN, fig.height=4, fig.width=6, message=FALSE, warning=FALSE, paged.print=FALSE----
 # add multi annotation
 plotHapTable(hapSummary,
              hapPrefix = "H",
@@ -207,7 +207,7 @@ plotHapTable(hapSummary,
              replaceMultiAllele = TRUE,
              ALLELE.color = "grey90")
 
-## ---- eval=NOT_CRAN, fig.height=4, fig.width=6, message=FALSE, warning=FALSE, paged.print=FALSE----
+## ----eval=NOT_CRAN, fig.height=4, fig.width=6, message=FALSE, warning=FALSE, paged.print=FALSE----
 # add multi annotation
 plotHapTable(hapSummary,
              hapPrefix = "H",
@@ -230,7 +230,7 @@ hapNet <- get_hapNet(hapSummary,
                      AccINFO = AccINFO,
                      groupName = "Type")
 
-## ---- eval=NOT_CRAN, fig.height=6, fig.width=7, message=FALSE, warning=FALSE, paged.print=FALSE----
+## ----eval=NOT_CRAN, fig.height=6, fig.width=7, message=FALSE, warning=FALSE, paged.print=FALSE----
 # plot haploNet
 
 plotHapNet(hapNet,
