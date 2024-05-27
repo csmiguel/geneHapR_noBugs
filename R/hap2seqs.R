@@ -228,7 +228,7 @@ seq2hap_data <- function(seqs,
     # remove redudant cols
     probe <- apply(newmseqs, 2, function(x)
         length(unique(x)))
-    newmseqs <- newmseqs[, probe != 1]
+    newmseqs <- newmseqs[, probe != 1, drop = F]
 
     # remove "-"
     newmseqs[, ] <- stringr::str_remove_all(newmseqs, "-")
